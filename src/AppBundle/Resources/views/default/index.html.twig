@@ -1,0 +1,194 @@
+{% extends "::base.html.twig" %}
+
+{% block title %}AppBundle:API:test{% endblock %}
+
+{% block body %}
+    <h1>Welcome to Ya Disk App</h1>
+    
+    
+    
+    {% if login %}
+    
+      
+    <h3>{{ login }}</h3>
+
+
+    {{ form(form) }}
+
+
+    <table id="grid-data" class="">
+        <thead>
+            <tr>
+                <th data-column-id="name">Name</th> 
+                <th data-column-id="link">Link</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>    
+    </table>
+{% else %}    
+          
+    <a href="{{ url('auth') }}">Enter</a>
+    
+    
+    {% endif %}
+{% endblock %}
+
+
+{% block jshead %}
+    {% if login %}
+    <script type="text/javascript">
+
+        var App = {
+            baseUrl: "{{ url('api_directory', {"path" : "/"}) }}",
+            tableSelector: "#grid-data",
+            init: function () {
+                this.getGrid().on('click', 'a.remove, a.download, a.to', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    var i = $(this),
+                            path = i.closest('tr').data('path'),
+                            action = (i.attr('href') || "#").slice(1);
+
+                    switch (action) {
+                        case 'to':
+                            App.loadGrid(path);
+                            break;
+                        case 'download':
+                            App.download(path);
+                            break;
+                        case 'remove':
+                            App.remove(path);
+                            break;
+                    }
+
+                });
+                this.loadGrid("/");
+            },
+            /**
+             * 
+             * @returns {window.$|$}
+             */
+            getGrid: function () {
+                if (!this._grid) {
+                    this._grid = $(this.tableSelector);
+                }
+                return this._grid;
+            },
+            /**
+             * 
+             * @param {type} path
+             * @returns {undefined}
+             */
+            download: function (path) {
+                $.ajax({
+                    url: "{{ url('api_download', {"path" : "/"}) }}" + path.slice(1),
+                    dataType: "json",
+                    success: function (data) {
+
+                        if (data.result) {
+                            var url = "{{ app.request.getSchemeAndHttpHost() }}/" + data.result;
+                            console.log(url);
+                            window.open(url, "_blank");
+                        } else {
+                            alert("Error upload file!");
+                        }
+
+                    },
+                    failure: function (e) {
+                        alert("Error upload file!");
+                    }
+                });
+            },
+            /**
+             * @param {type} path
+             * @returns {undefined}             
+             */
+            remove: function (path) {
+
+                if (!confirm("Do you want to delete a file: " + path + "?")) {
+                    return;
+
+                }
+
+
+                $.ajax({
+                    url: "{{ url('api_delete', {"path" : "/"}) }}" + path.slice(1),
+                    dataType: "json",
+                    success: function (data) {
+
+                        if (data.result) {
+                            App.loadGrid('/');
+                        } else {
+                            alert("Error remove file!");
+                        }
+                    },
+                    failure: function (e) {
+                        alert("Error remove file!");
+                    }
+                });
+            },
+            /**
+             * 
+             * @param {type} path
+             * @returns {undefined}
+             */
+            loadGrid: function (path) {
+                var t = App.getGrid(),
+                        tbody = t.find('tbody');
+
+                tbody.empty();
+
+                $.ajax({
+                    url: App.baseUrl + path,
+                    dataType: "json",
+                    success: function (data) {
+
+                        $('#form_path').val(path);
+
+
+                        $(data).each(function () {
+                            if (path.split('/').join('') && path.split('/').join('') === this.path.split('/').join('')) {
+
+                                var s = path.split('/').filter(function (v) {
+                                    return v !== '';
+                                }),
+                                        spath = "/";
+                                if (s.length > 1) {
+                                    s.pop();
+                                    spath = s.join("/");
+                                }
+
+
+                                tbody.append($('<tr data-path="' + spath + '"><td>--back--</td>\n\
+                                   <td><a class="to" href="#to">to</a>\n\
+                                       </td></tr>'));
+
+                            } else if (this.type === 'file') {
+
+                                tbody.append($('<tr data-path="' + this.path + '"><td>' + this.name + '</td>\n\
+                                   <td><a class="remove" href="#remove">remove</a>\n\
+                                       <a class="download" href="#download">download</a></td></tr>'));
+                            } else {
+
+                                tbody.append($('<tr data-path="' + this.path + '"><td>' + this.name + '</td>\n\
+                                   <td><a class="to" href="#to">to</a>\n\
+                                       </td></tr>'));
+                            }
+                        });
+                    }
+                });
+            }
+        };
+
+
+
+        $(function () {
+            App.init();
+
+
+        });
+    </script>
+    {% endif %}
+{% endblock %}

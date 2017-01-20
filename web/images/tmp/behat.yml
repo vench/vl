@@ -1,0 +1,16 @@
+default:
+    autoload:
+        '': %paths.base%/app/tests/features/bootstrap
+    suites:
+        default:
+            paths:    [ %paths.base%/app/tests/features ]
+            contexts: [MyTests\Bootstrap\FeatureContext]
+    extensions:
+        Behat\MinkExtension:
+             goutte: ~
+             browser_name: 'chrome'
+             javascript_session: selenium2
+             base_url: https://prelive-market2.bunny.mediasaturnrussia.ru/
+             selenium2:
+                   wd_host: http://127.0.0.1:4444/wd/hub
+                   capabilities: { "browserName": "chrome", "browser": "chrome", "version":  "45", 'chrome': {'switches':['--no-sandbox']}}
