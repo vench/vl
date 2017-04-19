@@ -5,6 +5,7 @@
 $this->title = 'My Yii Application';
 
 
+yii\web\JqueryAsset::register($this);
 \mimicreative\react\ReactAsset::register($this);
 $this->registerJsFile('//cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js'); 
 
@@ -18,12 +19,7 @@ $this->registerJsFile('/js/app.js', [
 
 <div class="site-index">
 
-    <div class="jumbotron">
-    <!--    <h1>Congratulations!</h1>
-
-        <p class="lead">You have successfully created your Yii-powered application.</p>
- -->
-    </div>
+     
 
     <div class="body-content">
 

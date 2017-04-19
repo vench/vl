@@ -1,9 +1,7 @@
  
  
  
-class AppEvent {
-    
-    
+class AppEvent { 
     
     constructor(type, contextData = null) {
         this.type = type;
@@ -11,69 +9,29 @@ class AppEvent {
     }
     
 } 
- 
-class App {
-    
-    
-    constructor() {
-        this.addObserver('Draftsman.save', (e) => {
-            console.log(e.contextData, this.imageDataToString(e.contextData));//TODO send to server
-            
-            var dataMono = {};
-        });
-        
-        this.addObserver('Draftsman.init', (e) => { 
-            let s = '640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.288.11.342.286.17.338.284.19.338.284.21.336.284.21.336.284.21.336.284.19.338.286.17.338.288.13.340.292.3.346.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640.640';
-            
-             let idd = this.stringToImageData(s, 320, 320);
-            console.log(idd);
-            e.contextData.getConvas2D().putImageData(idd, 0, 0, 0, 0, 320, 320);
-        });
+
+
+class ImageDTO {
+    constructor(id, imageDataStr, width, height) {
+        this.id = id;
+        this.imageDataStr = imageDataStr;
+        this.width = width;
+        this.height = height;
     }
     
     
-    addObserver(type, handler) {
-        if(!this.obs) {
-            this.obs = {};
+    getimageData() {
+        if(!this.imageData && this.imageDataStr) {
+            this.imageData = UtilityImageData.unpack(this.imageDataStr, this.width, this.height);
         }
-        if(!this.obs[type]) {
-            this.obs[type] = [];
-        }
-        this.obs[type].push(handler);
+        return this.imageData;
     }
-    
-    
-    fire(e) {
-        if(!(e instanceof AppEvent) || !this.obs[e.type]) {
-            return;
-        }
-        
-        this.obs[e.type].map((handler)=>{
-            handler.apply(null, [e]);
-        })
-    }
-    
-    
-    stringToImageData( data, width, height ) {
-        let len = width * height * 4, dataImage = new Uint8ClampedArray(len), 
-            spl = data.split('.'), k, vl,bit,cbit,i, index = 0;
-        for(k in spl) {
-            vl = spl[k];
-            bit = vl & 1;
-            cbit = vl - bit >> 1;
-           
-            for(i = 0; i < cbit; i ++) {
-               dataImage[index ++] =  bit * 255;
-               dataImage[index ++] =  bit * 255;
-               dataImage[index ++] =  bit * 255;
-               dataImage[index ++] =  255;
-            }
-        }
-        
-        return new ImageData(dataImage, width, height);
-    }
-    
-    imageDataToString(imageData) {
+}
+
+
+class UtilityImageData {
+  
+    static pack(imageData) {
         let height = imageData.height,
             width = imageData.width,
             data = imageData.data,
@@ -111,6 +69,134 @@ class App {
         }
         
         return result.join('.');
+    }    
+    
+    static unpack(data, width, height ) {
+        let len = width * height * 4, dataImage = new Uint8ClampedArray(len), 
+            spl = data.split('.'), k, vl,bit,cbit,i, index = 0;
+        for(k in spl) {
+            vl = spl[k];
+            bit = vl & 1;
+            cbit = vl - bit >> 1;
+           
+            for(i = 0; i < cbit; i ++) {
+               dataImage[index ++] =  bit * 255;
+               dataImage[index ++] =  bit * 255;
+               dataImage[index ++] =  bit * 255;
+               dataImage[index ++] =  255;
+            }
+        }
+        
+        return new ImageData(dataImage, width, height);
+    }    
+}
+ 
+ 
+class App {
+    
+    
+    constructor() {
+        
+        this.cid = undefined;
+        
+        const self = this; 
+        
+        this.addObserver('Draftsman.save', (e) => {
+            
+            let data = e.contextData, strImage = this.imageDataToString(data), query = '';
+            
+            if(this.cid) {
+                query = '&id=' + this.cid;
+            }
+            
+            $.post('/index.php?r=api/save' + query, {
+                width:      data.width,
+                height:     data.height,
+                strImage:   strImage,
+            }, (result) => {
+                 if(!result.success) {
+                     console.log("Что то пошло не так", result.errors);
+                 } else {
+                     console.log(result);
+                     this.cid = result.id;
+                     self.fire( new AppEvent('Draftsman.update', result));
+                 }
+            });
+        });
+        
+        this.addObserver('DraftsmanImage.select', (e) => {
+            let data = e.contextData;
+            this.cid = data.id;
+            
+            if(self.draftsman2d) {
+                self.draftsman2d.putImageData(data.getimageData(), 0, 0, 0, 0, data.width, data.height);
+            } else {
+                console.log("Что то пошло не так" );
+            }
+            
+        });
+        
+        this.addObserver('Draftsman.init', (e) => {  
+            self.draftsman2d = e.contextData.getConvas2D();
+        });  
+    }
+    
+    
+    addObserver(type, handler) {
+        if(!this.obs) {
+            this.obs = {};
+        }
+        if(!this.obs[type]) {
+            this.obs[type] = [];
+        }
+        this.obs[type].push(handler);
+    }
+    
+    
+    fire(e) {
+        if(!(e instanceof AppEvent) || !this.obs[e.type]) {
+            return;
+        }
+        
+        this.obs[e.type].map((handler)=>{
+            handler.apply(null, [e]);
+        })
+    }
+    
+    
+    stringToImageData(  data, width, height ) {         
+        return UtilityImageData.unpack(data, width, height);
+    }
+    
+    imageDataToString(imageData){
+        return UtilityImageData.pack(imageData);
+    }
+    
+    
+    init() {
+        const self = this;
+        
+        $.getJSON('/index.php?r=api/list', function(list){
+            if(list.length > 0) { 
+                let images = list.map((item) => {
+                    return new ImageDTO(item.id, item.data, item.width, item.height );
+                });
+                 
+                self.fire( new AppEvent('App.loadimages', images)); 
+            }
+        });  
+        
+        ReactDOM.render(
+                
+                 <div className="row">
+                    <div className="col-sm-6">
+                    <Draftsman width="320" height="320" />
+                    </div>
+                    <div className="col-sm-6">
+                     <DraftsmanImageList/>
+                    </div>
+                 </div>, 
+         document.getElementById('draw')); 
     }
 }
 
@@ -128,12 +214,10 @@ class Draftsman extends React.Component {
     
  constructor(props) {
     super(props);
-    this.state = {
-        
-    };
+    this.state = { };
      
     this.beginDraw = false;
-    this.idconvas = 'canvas-me';
+    this.idconvas = this.props.idconvas || 'canvas-me';
   }
     
   onStopBeginDraw(e) { 
@@ -234,8 +318,8 @@ class Draftsman extends React.Component {
           height = this.getHeight();
     return <div >
             <div>
-                <a className="btn" onClick={(e)=>{ this.clear(); }}>clear</a>
-                <a className="btn" onClick={(e)=>{ this.save(); }}>save</a>
+                <a className="btn" onClick={(e)=>{ this.clear(); }}>Очистить</a>
+                <a className="btn" onClick={(e)=>{ this.save(); }}>Сохранить</a>
             </div>
             <canvas id={this.idconvas}
                     height={height} 
@@ -245,9 +329,76 @@ class Draftsman extends React.Component {
   }
 }
 
+class DraftsmanImage extends React.Component {
+    
+    
+    constructor(props) {
+        super(props);
+        this.state = { 
+            url: this.getUrl()
+        };
+        
+        const self = this;
+        
+        app.addObserver('Draftsman.update', (e) => {
+             if(e.contextData.id == self.props.image.id) {
+                 self.setState({
+                    url: this.getUrl() + '&t=' + Math.random()
+                });   
+             }
+        });
+        
+    }
+    
+    getUrl() {
+        return "index.php?r=api/image&id=" + this.props.image.id;
+    }
+    
+    onClick(e) { 
+        e.stopPropagation();
+        app.fire( new AppEvent('DraftsmanImage.select', this.props.image ));
+        
+        return false;
+    }
+    
+    render() {
+        return <div className="highlight" >ID: {this.props.image.id} 
+                <a className="btn" href="#" onClick={this.onClick.bind(this)}>Изменить</a>
+                <img className="img-thumbnail" width="50"  height="50" src={this.state.url}/></div>
+    }
+}
 
 
-ReactDOM.render(<Draftsman width="320" height="320" />, document.getElementById('draw')); 
+class DraftsmanImageList extends React.Component  {
+    
+    constructor(props) {
+        super(props);
+        this.state = {
+            list: [   ]
+        };
+        
+        const self = this;
+        
+        app.addObserver('App.loadimages', (e) => {
+            
+            self.setState({
+                list: e.contextData,
+            });
+        })
+    }
+    
+    render() {
+        
+        
+        const dataStr = (this.state.list) ? this.state.list.map((i) => {
+                 return  <li key={i.id}><DraftsmanImage image={i} /></li>;
+             }) : ''; 
+        
+        return <ul>{dataStr}</ul>;
+    }
+}
+
+
 
  
- 
+app.init(); 
