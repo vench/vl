@@ -58,16 +58,13 @@ class UtilityImageData {
             x ++;
             if(x >= width) {
                 x = 0;
-                y ++;
-                
-                if(cbit > 0 && lbit != -1) {
-                    result.push( cbit << 1 | lbit);
-                }
-                lbit = -1;
-                cbit= 0;
+                y ++;  
             }
         }
-        
+        if(cbit > 0 && lbit != -1) {
+            result.push( cbit << 1 | lbit);
+        }
+        console.log(result);
         return result.join('.');
     }    
     
@@ -190,7 +187,7 @@ class App {
                 
                  <div className="row">
                     <div className="col-sm-6">
-                    <Draftsman width="320" height="320" />
+                    <Draftsman width="320" height="320" /> 
                     </div>
                     <div className="col-sm-6">
                      <DraftsmanImageList/>
@@ -214,10 +211,8 @@ class Draftsman extends React.Component {
     
  constructor(props) {
     super(props);
-    this.state = { };
-     
-    this.beginDraw = false;
-    this.idconvas = this.props.idconvas || 'canvas-me';
+    this.state = { }; 
+    this.beginDraw = false; 
   }
     
   onStopBeginDraw(e) { 
@@ -255,7 +250,7 @@ class Draftsman extends React.Component {
   }
   
   getConvas() {
-      return document.getElementById( this.idconvas );
+      return this.canvas;
   }
    
   getConvas2D() {
@@ -281,19 +276,16 @@ class Draftsman extends React.Component {
       app.fire(new AppEvent('Draftsman.save', data));
   }
   
-  componentDidMount() {
-      console.log('componentDidMount', this);
-      let canvas = document.getElementById( this.idconvas );
-      let self = this;
-      
+  componentDidMount() { 
+      let canvas = this.getConvas();
+      let self = this;      
       
       canvas.addEventListener("mousedown", (e)=>{ self.onStartBeginDraw.call(self, e); }, false);
       canvas.addEventListener("mouseleave", (e)=>{ self.onStopBeginDraw.call(self, e); }, false);
       canvas.addEventListener("mouseup", (e)=>{ self.onStopBeginDraw.call(self, e); }, false);
       canvas.addEventListener("mousemove", (e)=>{ self.onMoveBeginDraw.call(self, e); }, false);
       
-      this.clear();
-      
+      this.clear();      
       
       app.fire(new AppEvent('Draftsman.init', self));
   }
@@ -324,6 +316,7 @@ class Draftsman extends React.Component {
             <canvas id={this.idconvas}
                     height={height} 
                     width={width} 
+                    ref={(canvas) => {this.canvas = canvas}}
                 />
            </div>;
   }
