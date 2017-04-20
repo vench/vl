@@ -10,44 +10,36 @@ class User extends \yii\base\Object implements \yii\web\IdentityInterface
     public $authKey;
     public $accessToken;
 
-    private static $users = [
-        '100' => [
-            'id' => '100',
-            'username' => 'admin',
-            'password' => 'admin',
-            'authKey' => 'test100key',
-            'accessToken' => '100-token',
-        ],
-        '101' => [
-            'id' => '101',
-            'username' => 'demo',
-            'password' => 'demo',
-            'authKey' => 'test101key',
-            'accessToken' => '101-token',
-        ],
-    ];
-
+    /**
+     * 
+     * @param string $condition
+     * @param array $params
+     * @return \static
+     */
+    public static function findByCondition($condition, $params = []) {
+        $model = UserDb::find()->andWhere($condition, $params)->asArray()->one();
+        if(!empty($model)) {
+            return new static($model);
+        } 
+         
+        return null;
+    }
+   
 
     /**
      * @inheritdoc
      */
     public static function findIdentity($id)
-    {
-        return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+    {        
+        return self::findByCondition('id=:id', [':id' => $id]);
     }
 
     /**
      * @inheritdoc
      */
     public static function findIdentityByAccessToken($token, $type = null)
-    {
-        foreach (self::$users as $user) {
-            if ($user['accessToken'] === $token) {
-                return new static($user);
-            }
-        }
-
-        return null;
+    {  
+        return self::findByCondition('accessToken=:token', [':token' => $token]);
     }
 
     /**
@@ -58,14 +50,21 @@ class User extends \yii\base\Object implements \yii\web\IdentityInterface
      */
     public static function findByUsername($username)
     {
-        foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
-                return new static($user);
-            }
-        }
-
-        return null;
+       return self::findByCondition('username=:username', [':username' => $username]);
     }
+    
+    
+    /**
+     * 
+     * @param string $value
+     * @return string
+     */
+    public static function passwordHash($value) {
+        return password_hash($value, PASSWORD_DEFAULT, [
+            'salt'  => __METHOD__,
+        ]);
+    }
+    
 
     /**
      * @inheritdoc
@@ -95,10 +94,10 @@ class User extends \yii\base\Object implements \yii\web\IdentityInterface
      * Validates password
      *
      * @param string $password password to validate
-     * @return bool if password provided is valid for current user
+     * @return bool if password provided is valid for current user 
      */
     public function validatePassword($password)
     {
-        return $this->password === $password;
+        return $this->password === \app\models\User::passwordHash( $password );
     }
 }

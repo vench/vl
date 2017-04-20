@@ -104,6 +104,7 @@ class ApiController extends Controller {
      * 
      * @param int $id
      * @param string $type
+     * @todo Тут конечно нужно сохранять промежуточные изображения и актуализировать их по мере изменений
      */
     public function actionImage($id, $type = 'png') {
         $model = $this->getImageDb($id);

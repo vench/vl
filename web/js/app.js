@@ -102,8 +102,8 @@ class App {
             
             let data = e.contextData, strImage = this.imageDataToString(data), query = '';
             
-            if(this.cid) {
-                query = '&id=' + this.cid;
+            if(self.cid) {
+                query = '&id=' + self.cid;
             }
             
             $.post('/index.php?r=api/save' + query, {
@@ -113,10 +113,16 @@ class App {
             }, (result) => {
                  if(!result.success) {
                      console.log("Что то пошло не так", result.errors);
-                 } else {
-                     console.log(result);
-                     this.cid = result.id;
-                     self.fire( new AppEvent('Draftsman.update', result));
+                 } else { 
+                     
+                     if(!self.cid) {//add new 
+                         self.fire( new AppEvent('Draftsman.add', result));
+                     } else {
+                         self.fire( new AppEvent('Draftsman.update', result));
+                     }
+                     
+                     self.cid = result.id; 
+                     
                  }
             });
         });
@@ -136,6 +142,10 @@ class App {
         this.addObserver('Draftsman.init', (e) => {  
             self.draftsman2d = e.contextData.getConvas2D();
         });  
+        
+        this.addObserver('Draftsman.add', (e) => {
+            self.loadList();
+        });
     }
     
     
@@ -167,10 +177,9 @@ class App {
     
     imageDataToString(imageData){
         return UtilityImageData.pack(imageData);
-    }
+    } 
     
-    
-    init() {
+    loadList() { 
         const self = this;
         
         $.getJSON('/index.php?r=api/list', function(list){
@@ -181,7 +190,10 @@ class App {
                  
                 self.fire( new AppEvent('App.loadimages', images)); 
             }
-        });  
+        }); 
+    }
+    
+    init() {  
         
         ReactDOM.render(
                 
@@ -194,6 +206,8 @@ class App {
                     </div>
                  </div>, 
          document.getElementById('draw')); 
+         
+         this.loadList();  
     }
 }
 

@@ -27,7 +27,7 @@ class UserDb extends \yii\db\ActiveRecord
      * @inheritdoc
      */
     public function rules()
-    {
+    {        
         return [
             [['username', 'password'], 'string', 'max' => 32],
             [['authKey', 'accessToken'], 'string', 'max' => 128],

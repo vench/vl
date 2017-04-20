@@ -7,3 +7,5 @@
 - Выполнить composer install
 - Выполнить php ./yii migrate
 - Выполнить cd web | php -S localhost:8888
+
+- Для входа в систему тестовый доступ admin - admin
