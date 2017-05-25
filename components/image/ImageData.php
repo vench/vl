@@ -48,14 +48,23 @@ abstract class ImageData {
         
         $data = UtilityImageData::unpack($this->strImage);
         
-        $color = imagecolorallocate($image, 255, 255, 255); 
+        //$color = imagecolorallocate($image, 255, 255, 255); 
+        $colors = [];
         
         for($y = 0; $y <  $this->height; $y ++) {
             for($x = 0; $x <  $this->width; $x ++) {
-                $index = (($this->width *$y) + $x) * 4; //$y + $x + 4; 
-                
-                 if($data[$index])       
-                imagesetpixel($image, $x, $y, $color);        
+                $index = (($this->width *$y) + $x); //$y + $x + 4; 
+                $color = $data[$index] ? : 0;
+                 if($color > 0) {
+                     if(!isset($colors[$color])) {
+                         $r = $color >> 16 & 0xFF;
+                         $g = $color >> 8 & 0xFF;
+                         $b = $color & 0xFF;
+                         $colors[$color] = imagecolorallocate($image, $r, $g, $b); 
+                     }
+                     imagesetpixel($image, $x, $y, $colors[$color]); 
+                 }       
+                           
             }
         }
         

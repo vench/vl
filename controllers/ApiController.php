@@ -26,7 +26,7 @@ class ApiController extends Controller {
         return [
             'negotiator' => [
                 'class' => ContentNegotiator::className(),
-                'only' => ['save', 'list'], 
+                'only' => ['save', 'list', 'delete'], 
                 'formats' => [                    
                     'application/json' => \yii\web\Response::FORMAT_JSON,
                 ],
@@ -35,7 +35,7 @@ class ApiController extends Controller {
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['save', 'list', 'image'],
+                        'actions' => ['save', 'list', 'image', 'delete'],
                         'allow' => true,
                         'roles' => ['@'],
                     ], 
@@ -110,6 +110,17 @@ class ApiController extends Controller {
         $model = $this->getImageDb($id);
         $image = ImageData::createByType($model, $type);
         $image->render();
+        Yii::$app->end();
+    }
+    
+    /**
+     * 
+     * @param int $id
+     */
+    public function actionDelete($id) {
+        $model = $this->getImageDb($id);
+        $model->delete();
+        echo Json::encode(['status' => 'OK']);
         Yii::$app->end();
     }
 

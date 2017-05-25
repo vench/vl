@@ -20,10 +20,16 @@ class ImageDTO {
     }
     
     
+    resetimageData(imageDataStr) {
+        this.imageDataStr = imageDataStr;
+        this.imageData = false;
+    }
+    
     getimageData() {
-        if(!this.imageData && this.imageDataStr) {
+        if(!(this.imageData instanceof ImageData) && this.imageDataStr) {
             this.imageData = UtilityImageData.unpack(this.imageDataStr, this.width, this.height);
         }
+        console.log(this.imageData, this.imageDataStr);
         return this.imageData;
     }
 }
@@ -36,23 +42,24 @@ class UtilityImageData {
             width = imageData.width,
             data = imageData.data,
             result = [],
-            i, y=0, x=0, r, g, b, bit, lbit = -1, cbit,len =data.length;
+            i, y=0, x=0, r, g, b, rgb, lastrgb = -1, size,len =data.length;
       
         for (i = 0; i < len; i += 4) {
             
             r = data[((width * y) + x) * 4];
             g = data[((width * y) + x) * 4 + 1];
-            b = data[((width * y) + x) * 4 + 2]; 
-            bit = (r  > 127 || g  > 127 || b  > 127) ? 1 : 0;
+            b = data[((width * y) + x) * 4 + 2];  
             
-            if(bit == lbit) {
-                cbit ++;
+            rgb =  (r << 16) | (g << 8) | (b);
+            
+            if(rgb == lastrgb) {
+                size ++;
             } else {
-                if(lbit != -1) {
-                    result.push( cbit << 1 | lbit);
+                if(lastrgb != -1) {
+                    result.push( lastrgb + '-' + size);
                 }
-                lbit = bit;
-                cbit = 1;
+                lastrgb = rgb;
+                size = 1;
             } 
             
             x ++;
@@ -61,8 +68,8 @@ class UtilityImageData {
                 y ++;  
             }
         }
-        if(cbit > 0 && lbit != -1) {
-            result.push( cbit << 1 | lbit);
+        if(size > 0 && lastrgb != -1) {
+            result.push(  lastrgb + '-' + size);
         }
         console.log(result);
         return result.join('.');
@@ -73,13 +80,12 @@ class UtilityImageData {
             spl = data.split('.'), k, vl,bit,cbit,i, index = 0;
         for(k in spl) {
             vl = spl[k];
-            bit = vl & 1;
-            cbit = vl - bit >> 1;
+            [bit, cbit] = vl.split('-'); 
            
             for(i = 0; i < cbit; i ++) {
-               dataImage[index ++] =  bit * 255;
-               dataImage[index ++] =  bit * 255;
-               dataImage[index ++] =  bit * 255;
+               dataImage[index ++] =  bit >> 16 & 0xFF;
+               dataImage[index ++] =  bit >> 8 & 0xFF;
+               dataImage[index ++] =  bit & 0xFF;
                dataImage[index ++] =  255;
             }
         }
@@ -137,6 +143,13 @@ class App {
                 console.log("Что то пошло не так" );
             }
             
+        });
+        
+        this.addObserver('DraftsmanImage.delete', (e) => {
+             let data = e.contextData;
+             $.get('/index.php?r=api/delete&id=' +  data.id, function(list){
+                    self.loadList();
+            }); 
         });
         
         this.addObserver('Draftsman.init', (e) => {  
@@ -257,7 +270,7 @@ class Draftsman extends React.Component {
            
       
       cn.beginPath();
-      cn.fillStyle="#ffffff";
+      cn.fillStyle = document.getElementById('color_choser') ? document.getElementById('color_choser').value : '#ffffff'; 
       cn.arc(x,y, this.getBrushSize(),0,Math.PI*2,true);
       cn.closePath();
       cn.fill();
@@ -349,6 +362,7 @@ class DraftsmanImage extends React.Component {
         
         app.addObserver('Draftsman.update', (e) => {
              if(e.contextData.id == self.props.image.id) {
+                 //TODO update data
                  self.setState({
                     url: this.getUrl() + '&t=' + Math.random()
                 });   
@@ -361,16 +375,27 @@ class DraftsmanImage extends React.Component {
         return "index.php?r=api/image&id=" + this.props.image.id;
     }
     
-    onClick(e) { 
+    onClickSelect(e) { 
         e.stopPropagation();
         app.fire( new AppEvent('DraftsmanImage.select', this.props.image ));
         
         return false;
     }
     
+    
+    onClickDelete(e) {
+        e.stopPropagation();
+        if(confirm("Удалить?")) {
+            app.fire( new AppEvent('DraftsmanImage.delete', this.props.image ));
+        } 
+        return false;
+        
+    }
+    
     render() {
         return <div className="highlight" >ID: {this.props.image.id} 
-                <a className="btn" href="#" onClick={this.onClick.bind(this)}>Изменить</a>
+                <a className="btn" href="#" onClick={this.onClickSelect.bind(this)}>Изменить</a>
+                <a className="btn" href="#" onClick={this.onClickDelete.bind(this)}>Удалить</a>
                 <img className="img-thumbnail" width="50"  height="50" src={this.state.url}/></div>
     }
 }

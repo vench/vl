@@ -24,14 +24,10 @@ class UtilityImageData {
         $index = 0;
         foreach ($spl as $v) {
             
-            $bit = $v & 1;
-            $cbit = $v - $bit >> 1;
+            list($color, $size) = explode('-', $v); 
            
-            for($i = 0; $i < $cbit; $i ++) {
-               $dataImage[$index ++] =  $bit * 255;
-               $dataImage[$index ++] =  $bit * 255;
-               $dataImage[$index ++] =  $bit * 255;
-               $dataImage[$index ++] =  255;
+            for($i = 0; $i < $size; $i ++) {
+               $dataImage[$index ++] =  $color; 
             }
         }
         
