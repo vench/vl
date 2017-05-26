@@ -9,12 +9,12 @@ use kartik\color\ColorInput;
 
 yii\web\JqueryAsset::register($this);
 \mimicreative\react\ReactAsset::register($this);
-$this->registerJsFile('//cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js'); 
+ 
 
-$this->registerJsFile('/js/app.js', [
-    'type'  => 'text/babel',
-    'position' => \yii\web\View::POS_BEGIN,
+$this->registerJsFile('/assets/app.js', [ 
+    'position' => \yii\web\View::POS_END,
 ]);
+
 
  
 ?> 
@@ -40,3 +40,7 @@ $this->registerJsFile('/js/app.js', [
 
     </div>
 </div>
+
+
+<?php
+

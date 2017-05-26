@@ -12,3 +12,4 @@
 
 - TODO add https://github.com/kartik-v/yii2-widget-colorinput
 - TODO add https://github.com/Sybio/GifCreator
+- TODO webpack --optimize-minimize
