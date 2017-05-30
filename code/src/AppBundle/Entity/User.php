@@ -43,7 +43,7 @@ class User
      * @var Education
      * 
      * @ORM\OneToOne(targetEntity="Education")
-     * @ORM\JoinColumn(name="education_id", referencedColumnName="id") 
+     * @ORM\JoinColumn(name="education_id", referencedColumnName="id", unique=false) 
      */
     private $education;
 
