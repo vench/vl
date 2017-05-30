@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block javascriptshead %} 
+    <script src="https://unpkg.com/vue"></script>
+{% endblock %}
+
+{% block body %}
+    <div id="wrapper">
+        <div id="container">
+            <div id="welcome">
+                <h1>Список пользователей</h1>
+                 <p><a href="{{ path('homepage')}}">Варант на Ext.js</a></p>
+            </div>
+
+            <div id="status">   
+                <div id="user-grid"></div> 
+            </div> 
+            
+            
+            <div id="app">
+  {{"{{ message }}"}}
+</div>
+<script>
+    
+    var app = new Vue({
+  el: '#app',
+  data: {
+    message: 'Hello Vue!'
+  }
+})
+    </script>
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    
+    
+{% endblock %}

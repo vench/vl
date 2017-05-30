@@ -22,6 +22,14 @@ class DefaultController extends Controller
     }
     
     /**
+     * @Route("/vue", name="homepage2")
+     */
+    public function indexVueAction(Request $request)
+    {  
+        return $this->render('default/index_vue.html.twig', [ ]);
+    }
+    
+    /**
      * @Route("/grid.json", name="grid_data")
      */
     public function gridDataAction(Request $request) {
