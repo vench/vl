@@ -1,7 +1,48 @@
 {% extends 'base.html.twig' %}
 
 {% block javascriptshead %} 
-    <script src="https://unpkg.com/vue"></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.20/vue.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/vue-strap/1.0.8/vue-strap.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/vue-resource/0.7.0/vue-resource.min.js'></script>  
+
+
+<script type="text/x-template" id="grid-template">
+<form class="checkboxs">
+        <p>Выбрать колонки для отображения</p>
+        <label  v-for="column in columns">{{"{{column.title}}"}}: 
+            <input name="{{"{{column.key}}"}}" type="checkbox" 
+                    :checked="column.active" @click="columnActive(column)" ></label>
+    </form>  
+      
+    <table class="table table-hover table-bordered table-striped">
+      <thead>
+        <tr>
+          <th v-for="column in columns |  filterBy 'true' in 'active'" @click="sortBy(column.key)" :class="{active: sortKey == column.key}">
+            {{"{{column.title | capitalize}}"}}
+            <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
+          </span>
+          </th> 
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="
+        entry in gdata 
+        | orderBy sortKey sortOrders[sortKey]">
+          <td class="small" v-for="column in columns |  filterBy 'true' in 'active'">
+          {{"{{entry[column.key]}}"}}
+          </td> 
+        </tr>
+      </tbody>
+    </table>
+    <p>Всего записей: {{"{{total}}"}}</p> 
+</script>
+
+    
+{% endblock %}
+{% block javascripts %}
+{% javascripts '@AppBundle/Resources/public/js/homepagevue.js' %}
+    <script src="{{ asset_url }}"></script>
+    {% endjavascripts %}
 {% endblock %}
 
 {% block body %}
@@ -9,31 +50,31 @@
         <div id="container">
             <div id="welcome">
                 <h1>Список пользователей</h1>
-                 <p><a href="{{ path('homepage')}}">Варант на Ext.js</a></p>
+                <p><a href="{{ path('homepage')}}">Варант на Ext.js</a></p>
             </div>
 
             <div id="status">   
-                <div id="user-grid"></div> 
-            </div> 
+                 <div id="user_grid"> 
+                    <user-grid :list="gridData" :columns="gridColumns"></user-grid> 
+                  </div>
+            </div>  
+          
+ 
+
             
-            
-            <div id="app">
-  {{"{{ message }}"}}
-</div>
-<script>
-    
-    var app = new Vue({
-  el: '#app',
-  data: {
-    message: 'Hello Vue!'
-  }
-})
-    </script>
+     
         </div>
     </div>
 {% endblock %}
 
 {% block stylesheets %}
-    
-    
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
+<style>
+    form.checkboxs {
+        margin: 0 0  10px 0 ;
+    }
+    form.checkboxs > label {
+        margin: 0 20px 0 0;
+    }
+</style> 
 {% endblock %}
