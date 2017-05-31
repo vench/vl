@@ -1,4 +1,5 @@
-# Name
+# Установка 
+- cd code
 - composer install
-- sudo docker-compose up
+- php7.0 app/console server:start
 

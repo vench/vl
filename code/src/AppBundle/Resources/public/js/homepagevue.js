@@ -56,8 +56,8 @@ Vue.component('user-grid', {
     }
 });
 
-// bootstrap the demo
-var demo = new Vue({
+
+new Vue({
     el: '#user_grid',
 
     data: { 

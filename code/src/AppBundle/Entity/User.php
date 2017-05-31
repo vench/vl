@@ -53,7 +53,7 @@ class User
      * @ORM\ManyToMany(targetEntity="Region")
      * @ORM\JoinTable(name="users_region",
      *      joinColumns={@ORM\JoinColumn(name="user_id", referencedColumnName="id")},
-     *      inverseJoinColumns={@ORM\JoinColumn(name="region_id", referencedColumnName="id", unique=true)}
+     *      inverseJoinColumns={@ORM\JoinColumn(name="region_id", referencedColumnName="id")}
      *      )
      */
     private $regions;
